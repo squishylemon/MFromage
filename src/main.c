@@ -8,7 +8,6 @@
 #define FRUSTUM_CULL_BLOCK 1
 #define SPHERICAL_DISTANCE 1
 #define MIPMAPPING 1
-#define FOG_ENABLED 1
 #define RENDER_DISTANCE_MIN 6
 #define RENDER_DISTANCE_MAX 32
 #define RENDER_DISTANCE_COOLDOWN VBLANKS_PER_SEC
@@ -1735,9 +1734,11 @@ int main(void)
 	gp0_command(0x01000000);
 	gp1_command(0x04000002); // DMA mode: DMA to GPU (2)
 
-	// removed old initial load
+	// Draw initial message
 	gpu_dma_init();
 	frame_start();
+	
+	draw_status_window(1, "Initializing..");
 	gpu_dma_finish();
 	frame_flip();
 
