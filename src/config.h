@@ -40,6 +40,6 @@
 #define WATER_ANIMATION_START (13<<4)
 #define WATER_ANIMATION_FRAMES 16
 
-#define LEVEL_LX 96
-#define LEVEL_LY 64
-#define LEVEL_LZ 96
+#define LEVEL_LX 192
+#define LEVEL_LY 128
+#define LEVEL_LZ 192
