@@ -6,9 +6,9 @@
 
 #define FRUSTUM_CULL 1
 #define FRUSTUM_CULL_BLOCK 1
-// #define SPHERICAL_DISTANCE 1
+#define SPHERICAL_DISTANCE 1
 #define MIPMAPPING 1
-#define RENDER_DISTANCE_MIN 12
+#define RENDER_DISTANCE_MIN 6
 #define RENDER_DISTANCE_MAX 32
 #define RENDER_DISTANCE_COOLDOWN VBLANKS_PER_SEC
 
@@ -1185,7 +1185,7 @@ void world_main_prepare(void)
 {
 	gpu_dma_init();
 	frame_start();
-	draw_status_window(0, "Reticulating splines..");
+	draw_status_window(0, "Building terrain");
 	gpu_dma_finish();
 	frame_flip();
 
@@ -1198,7 +1198,7 @@ void world_main_load(int slot)
 {
 	gpu_dma_init();
 	frame_start();
-	draw_status_window(0, "Loading level..");
+	draw_status_window(0, "Loading level");
 	gpu_dma_finish();
 	frame_flip();
 
@@ -1391,7 +1391,7 @@ void player_update(int mmul)
 		if (cam_rx > 0x4000) cam_rx = 0x4000;
 	}
 
-	if ((joy_pressed & PAD_L2) != 0 || (has_mouse && (joy_pressed & (PAD_MOUSE_L << 16)) != 0)) {
+	if ((joy_pressed & PAD_R2) != 0 || (has_mouse && (joy_pressed & (PAD_MOUSE_R << 16)) != 0)) {
 		int32_t sel_cx = -1;
 		int32_t sel_cy = -1;
 		int32_t sel_cz = -1;
@@ -1443,7 +1443,7 @@ void player_update(int mmul)
 		}
 	}
 
-	if ((joy_pressed & PAD_R2) != 0 || (has_mouse && (joy_pressed & (PAD_MOUSE_R << 16)) != 0)) {
+	if ((joy_pressed & PAD_L2) != 0 || (has_mouse && (joy_pressed & (PAD_MOUSE_L << 16)) != 0)) {
 		int32_t sel_cx = -1;
 		int32_t sel_cy = -1;
 		int32_t sel_cz = -1;
@@ -1817,8 +1817,49 @@ int main(void)
 		gpu_dma_finish();
 	}
 
-        // Generate a world
-	world_main_generate(0);
+    int is_menu_open = 1;
+		is_ticking = 0;
+
+#ifdef SAVING_ENABLED
+		while (is_menu_open) switch (gui_menu(7, 0, "Options", "Generate new level", "Save level..", "Load level..", NULL, "Credits", "Back to game")) {
+#else
+		while (is_menu_open) switch (gui_menu(5, 0, "Options", "Generate new level", NULL, "Credits", "Back to game")) {
+#endif
+			case 0:
+				if (gui_options_menu(&options)) is_menu_open = 0;
+				break;
+			case 1: {
+				int wgen_mode = gui_worldgen_menu();
+				if (wgen_mode < 0) break;
+				world_main_generate(wgen_mode);
+				is_menu_open = 0; break;
+			} break;
+#ifdef SAVING_ENABLED
+			case 2: {
+				int slot = gui_menu(6, 0, "Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5", "Cancel");
+				if (slot < 0 || slot >= 5) break;
+				world_main_save(slot+1);
+				is_menu_open = 0; break;
+			}
+			case 3: {
+				int slot = gui_menu(6, 0, "Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5", "Cancel");
+				if (slot < 0 || slot >= 5) break;
+				world_main_load(slot+1);
+				is_menu_open = 0; break;
+			}
+			case 5: {
+#else
+			case 3: {
+#endif
+				gui_terrible_text_viewer(license_text_txt);
+				is_menu_open = 0; break;
+			}
+			default:
+				is_menu_open = 0;
+				break;
+		}
+		joy_delay = 5;
+		is_ticking = 1;
 
 	ticks = movement_ticks = 0;
 	for(;;) {
